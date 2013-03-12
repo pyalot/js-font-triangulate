@@ -34,7 +34,11 @@ tableTypes =
             constructor: (@tables, @stream) ->
                 @unitsPerEm = @tables.head.unitsPerEm
 
-                contourCount = @stream.ushort()
+                contourCount = @stream.short()
+                if contourCount == -1 #compound glyph, not yet parsed
+                    @contours = []
+                    return
+
                 @xmin = @stream.short()/@unitsPerEm
                 @ymin = @stream.short()/@unitsPerEm
                 @xmax = @stream.short()/@unitsPerEm
@@ -48,6 +52,11 @@ tableTypes =
                 @contourEndPoints = @stream.ushortArray contourCount
 
                 instructionCount = @stream.ushort()
+                if instructionCount > 1024*4 #no idea what's wrong here, data after this is garbage
+                    console.warn 'Malformed Font, instructionCount too large: ' + instructionCount
+                    @contours = []
+                    return
+
                 @instructions = @stream.byteArray instructionCount
 
                 @coordinatesCount = @contourEndPoints[@contourEndPoints.length - 1]

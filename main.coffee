@@ -109,9 +109,10 @@ $ ->
 
     stats = $('<div></div>').insertAfter(controls)
 
+    ## all 3 fonts should work now ##
     loadBuffer path:'fonts/leaguegothic-regular-webfont.ttf', load: (buffer) ->
     #loadBuffer path:'fonts/fanwood-webfont.ttf', load: (buffer) ->
-    #loadBuffer path:'fonts/orbitron-black-webfont.ttf', load: (buffer) -> #doesn't work on TTF parsing (exceeds buffer)
+    #loadBuffer path:'fonts/orbitron-black-webfont.ttf', load: (buffer) ->
         font = new TTF buffer
         for glyph, i in font.tables.glyf.glyphs
             $('<option></option>')
