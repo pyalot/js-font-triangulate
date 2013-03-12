@@ -125,35 +125,34 @@
   };
 
   $(function() {
-    var bezierCheckbox, controls, font, go, select;
+    var bezierCheckbox, controls, font, select, update;
     canvas = $('canvas')[0];
     ctx = canvas.getContext('2d');
     font = null;
-    controls = $('<div></div>').insertBefore(canvas);
-    $('<label>Glyph: </label>').appendTo(controls);
-    select = $('<select></select>').appendTo(controls);
-    $('<label>Bezier: </label>').appendTo(controls);
-    bezierCheckbox = $('<input type="checkbox" checked="checked"></input>').appendTo(controls);
-    go = $('<button>Go</button>').appendTo(controls).click(function() {
+    update = function() {
       var doBezier, glyph, glyphNum;
       glyphNum = parseInt(select.val(), 10);
       doBezier = bezierCheckbox[0].checked;
       glyph = font.tables.glyf.glyphs[glyphNum];
       return drawGlyph(glyph, doBezier);
-    });
+    };
+    controls = $('<div></div>').insertBefore(canvas);
+    $('<label>Glyph: </label>').appendTo(controls);
+    select = $('<select></select>').appendTo(controls).change(update);
+    $('<label>Bezier: </label>').appendTo(controls);
+    bezierCheckbox = $('<input type="checkbox" checked="checked"></input>').appendTo(controls).change(update);
     stats = $('<div></div>').insertAfter(controls);
     return loadBuffer({
       path: 'fonts/leaguegothic-regular-webfont.ttf',
       load: function(buffer) {
-        var glyph, i, _i, _len, _ref, _results;
+        var glyph, i, _i, _len, _ref;
         font = new TTF(buffer);
         _ref = font.tables.glyf.glyphs;
-        _results = [];
         for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
           glyph = _ref[i];
-          _results.push($('<option></option>').text(i).val(i).appendTo(select));
+          $('<option></option>').text(i).val(i).appendTo(select);
         }
-        return _results;
+        return update();
       }
     });
   });

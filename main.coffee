@@ -95,17 +95,19 @@ $ ->
     canvas = $('canvas')[0]
     ctx = canvas.getContext('2d')
     font = null
-
-    controls = $('<div></div>').insertBefore(canvas)
-    $('<label>Glyph: </label>').appendTo(controls)
-    select = $('<select></select>').appendTo(controls)
-    $('<label>Bezier: </label>').appendTo(controls)
-    bezierCheckbox = $('<input type="checkbox" checked="checked"></input>').appendTo(controls)
-    go = $('<button>Go</button>').appendTo(controls).click ->
+    
+    update = ->
         glyphNum = parseInt(select.val(), 10)
         doBezier = bezierCheckbox[0].checked
         glyph = font.tables.glyf.glyphs[glyphNum]
         drawGlyph glyph, doBezier
+
+    controls = $('<div></div>').insertBefore(canvas)
+    $('<label>Glyph: </label>').appendTo(controls)
+    select = $('<select></select>').appendTo(controls).change update
+    $('<label>Bezier: </label>').appendTo(controls)
+    bezierCheckbox = $('<input type="checkbox" checked="checked"></input>').appendTo(controls).change update
+
 
     stats = $('<div></div>').insertAfter(controls)
 
@@ -119,3 +121,4 @@ $ ->
                 .text(i)
                 .val(i)
                 .appendTo(select)
+        update()
