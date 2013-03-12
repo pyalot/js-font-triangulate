@@ -61,10 +61,37 @@
   };
 
   drawTriangles = function(glyph, contours) {
-    var end, start, triangles;
+    var end, extend, i, p1, p2, p3, scale, start, triangles, _i, _ref;
     start = performance.now();
-    triangles = triangulate(contours);
+    triangles = triangulate(glyph, contours);
     end = performance.now();
+    ctx.save();
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.strokeStyle = 'black';
+    ctx.fillStyle = 'green';
+    extend = Math.max(glyph.width, glyph.height);
+    scale = 500 / extend;
+    ctx.scale(1, -1);
+    ctx.translate(-glyph.centerX * scale, -glyph.centerY * scale);
+    for (i = _i = 0, _ref = triangles.length; _i < _ref; i = _i += 3) {
+      p1 = triangles[i + 0];
+      p2 = triangles[i + 1];
+      p3 = triangles[i + 2];
+      console.log(p1, p2, p3);
+      ctx.beginPath();
+      ctx.moveTo(p1.x * scale, p1.y * scale);
+      ctx.lineTo(p2.x * scale, p2.y * scale);
+      ctx.lineTo(p3.x * scale, p3.y * scale);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(p1.x * scale, p1.y * scale);
+      ctx.lineTo(p2.x * scale, p2.y * scale);
+      ctx.lineTo(p3.x * scale, p3.y * scale);
+      ctx.closePath();
+      ctx.stroke();
+    }
+    ctx.restore();
     $('<label>Triangulate: </label>').appendTo(stats);
     return $('<span></span>').text((end - start).toFixed(4) + 'ms').appendTo(stats);
   };

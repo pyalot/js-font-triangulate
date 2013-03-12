@@ -27,6 +27,20 @@ remove = (list, item) ->
     if idx >= 0
         list.splice idx, 1
 
-exports = (contours) ->
-    path = extractPath(contours[0])
-    return []
+exports = (glyph, contours) ->
+    ## dummy code ##
+    cx = glyph.centerX
+    cy = glyph.centerY
+
+    w = glyph.width/2
+    h = glyph.height/2
+
+    return [
+        {x:cx-w,y:cy-h},
+        {x:cx-w,y:cy+h},
+        {x:cx+w,y:cy+h},
+        
+        {x:cx-w,y:cy-h},
+        {x:cx+w,y:cy+h},
+        {x:cx+w,y:cy-h},
+    ]
