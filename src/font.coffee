@@ -11,7 +11,24 @@ tableTypes =
                 throw 'ttf magic did not match'
             @flags = @stream.ushort()
             @unitsPerEm = @stream.ushort()
-            
+
+            @created = @stream.ulong()
+            @modified = @stream.ulong()
+                
+            @xmin = @stream.short()/@unitsPerEm
+            @ymin = @stream.short()/@unitsPerEm
+            @xmax = @stream.short()/@unitsPerEm
+            @ymax = @stream.short()/@unitsPerEm
+
+            @style = @stream.ushort()
+            @smallestReadablePixelSize = @stream.ushort()
+            @directionHint = @stream.short()
+            @locaFormat = @stream.short()
+            @glyphFormat = @stream.short()
+
+            if @glyphFormat != 0
+                throw 'Unknown Glyph Format'
+             
     glyf: class Glyf
         class Glyph
             constructor: (@tables, @stream) ->
@@ -116,23 +133,38 @@ tableTypes =
         constructor: (@stream, @tables) ->
         parse: ->
             @glyphs = for offset in @tables.loca.offsets
-                new Glyph @tables, @stream.streamRel offset*2
+                new Glyph @tables, @stream.streamRel offset
 
     loca: class Loca
         constructor: (@stream, @tables) ->
         parse: ->
-            @offsets = (@stream.ushort() for i in [0...@tables.maxp.numGlyfs])
+            if @tables.head.locaFormat == 0
+                @offsets = (@stream.ushort()*2 for i in [0...@tables.maxp.numGlyfs])
+            else
+                @offsets = (@stream.uint() for i in [0...@tables.maxp.numGlyfs])
 
     maxp: class Maxp
         constructor: (@stream) ->
             version = @stream.uint()
+            if version != 0x00010000
+                throw 'Unknown Maxp version'
             @numGlyfs = @stream.ushort()
 
 exports = class TTF
     constructor: (@buffer) ->
         @stream = new BufferStream @buffer
 
-        tableCount = @stream.seek(4).ushort()
+        type = @stream.uint()
+        if type == 0x00010000
+            @type = 'truetype'
+        else if @version == 0x4f54544f
+            @type = 'opentype'
+        else
+            @type = 'UNKNOWN'
+
+        console.log 'Font Type: ', @type
+
+        tableCount = @stream.ushort()
         @stream.seek(12)
         @tables = {}
 

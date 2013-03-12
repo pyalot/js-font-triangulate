@@ -55,7 +55,6 @@ drawTriangles = (glyph, contours) ->
         p1 = triangles[i+0]
         p2 = triangles[i+1]
         p3 = triangles[i+2]
-        console.log p1, p2, p3
 
         ctx.beginPath()
         ctx.moveTo(p1.x*scale, p1.y*scale)
@@ -111,6 +110,8 @@ $ ->
     stats = $('<div></div>').insertAfter(controls)
 
     loadBuffer path:'fonts/leaguegothic-regular-webfont.ttf', load: (buffer) ->
+    #loadBuffer path:'fonts/fanwood-webfont.ttf', load: (buffer) ->
+    #loadBuffer path:'fonts/orbitron-black-webfont.ttf', load: (buffer) -> #doesn't work on TTF parsing (exceeds buffer)
         font = new TTF buffer
         for glyph, i in font.tables.glyf.glyphs
             $('<option></option>')

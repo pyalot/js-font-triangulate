@@ -22,6 +22,11 @@ exports = class BufferStream
         else value = @view.getUint32(@pos)
         @pos += 4
         return value
+
+    ulong: ->
+        a = @uint()
+        b = @uint()
+        return a*(1<<32)+b
     
     short: (value) ->
         if value? then @view.setInt16(@pos, value)

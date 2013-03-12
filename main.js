@@ -77,7 +77,6 @@
       p1 = triangles[i + 0];
       p2 = triangles[i + 1];
       p3 = triangles[i + 2];
-      console.log(p1, p2, p3);
       ctx.beginPath();
       ctx.moveTo(p1.x * scale, p1.y * scale);
       ctx.lineTo(p2.x * scale, p2.y * scale);
