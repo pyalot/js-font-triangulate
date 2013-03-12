@@ -28,7 +28,7 @@ tableTypes =
 
             if @glyphFormat != 0
                 throw 'Unknown Glyph Format'
-             
+
     glyf: class Glyf
         class Glyph
             constructor: (@tables, @stream) ->
@@ -44,12 +44,16 @@ tableTypes =
                 @xmax = @stream.short()/@unitsPerEm
                 @ymax = @stream.short()/@unitsPerEm
 
+                if @xmin >= @xmax or @ymin >= @ymax
+                    console.warn 'Glyph bounding box not correct'
+
                 @width = @xmax - @xmin
                 @height = @ymax - @ymin
                 @centerX = (@xmax + @xmin)/2
                 @centerY = (@ymax + @ymin)/2
 
                 @contourEndPoints = @stream.ushortArray contourCount
+
 
                 instructionCount = @stream.ushort()
                 if instructionCount > 1024*4 #no idea what's wrong here, data after this is garbage
@@ -68,7 +72,7 @@ tableTypes =
                         repeat = @stream.byte()
                         for _ in [0...repeat]
                             @flags.push flag
-		
+
                 @coords = for flag in @flags
                     {onCurve: (flag & 1<<0)>0}
 
@@ -98,7 +102,10 @@ tableTypes =
 
                 start = 0
                 for end in @contourEndPoints
-                    contours.push @coords[start...end+1]
+                    coords = @coords[start...end+1]
+                    while coords[0].onCurve == false and coords[1].onCurve == true
+                        coords.push coords.shift()
+                    contours.push coords
                     start = end+1
 
                 for coords in contours

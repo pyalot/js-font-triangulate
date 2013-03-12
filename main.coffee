@@ -97,28 +97,48 @@ $ ->
     font = null
     
     update = ->
-        glyphNum = parseInt(select.val(), 10)
+        glyphNum = parseInt(glyphSelect.val(), 10)
         doBezier = bezierCheckbox[0].checked
         glyph = font.tables.glyf.glyphs[glyphNum]
         drawGlyph glyph, doBezier
+    
+    fonts = [
+        'leaguegothic-regular-webfont.ttf',
+        'fanwood-webfont.ttf',
+        'orbitron-black-webfont.ttf',
+        'orbitron-medium-webfont.ttf',
+        'BaroqueScript.ttf',
+        'Hawaii_Killer.ttf',
+        '3dlet.ttf',
+        'AtomicClockRadio.ttf',
+        'VTKSAnimal2.ttf'
+    ]
+    
+    loadFont = ->
+        name = fontSelect.val()
+        loadBuffer path: 'fonts/' + name, load: (buffer) ->
+            glyphSelect.empty()
+            font = new TTF buffer
+            for glyph, i in font.tables.glyf.glyphs
+                $('<option></option>')
+                    .text(i)
+                    .val(i)
+                    .appendTo(glyphSelect)
+            update()
 
     controls = $('<div></div>').insertBefore(canvas)
+    $('<label>Font: </label>').appendTo(controls)
+    fontSelect = $('<select></select>').appendTo(controls).change loadFont
+    for font in fonts
+        $('<option></option>')
+            .text(font)
+            .val(font)
+            .appendTo(fontSelect)
+
     $('<label>Glyph: </label>').appendTo(controls)
-    select = $('<select></select>').appendTo(controls).change update
+    glyphSelect = $('<select></select>').appendTo(controls).change update
     $('<label>Bezier: </label>').appendTo(controls)
     bezierCheckbox = $('<input type="checkbox" checked="checked"></input>').appendTo(controls).change update
 
-
     stats = $('<div></div>').insertAfter(controls)
-
-    ## all 3 fonts should work now ##
-    loadBuffer path:'fonts/leaguegothic-regular-webfont.ttf', load: (buffer) ->
-    #loadBuffer path:'fonts/fanwood-webfont.ttf', load: (buffer) ->
-    #loadBuffer path:'fonts/orbitron-black-webfont.ttf', load: (buffer) ->
-        font = new TTF buffer
-        for glyph, i in font.tables.glyf.glyphs
-            $('<option></option>')
-                .text(i)
-                .val(i)
-                .appendTo(select)
-        update()
+    loadFont()
