@@ -44,7 +44,7 @@ tableTypes =
                 @xmax = @stream.short()/@unitsPerEm
                 @ymax = @stream.short()/@unitsPerEm
 
-                if @xmin >= @xmax or @ymin >= @ymax
+                if @xmin > @xmax or @ymin > @ymax
                     console.warn 'Glyph bounding box not correct'
 
                 @width = @xmax - @xmin
@@ -53,7 +53,6 @@ tableTypes =
                 @centerY = (@ymax + @ymin)/2
 
                 @contourEndPoints = @stream.ushortArray contourCount
-
 
                 instructionCount = @stream.ushort()
                 if instructionCount > 1024*4 #no idea what's wrong here, data after this is garbage
@@ -157,7 +156,7 @@ tableTypes =
             if @tables.head.locaFormat == 0
                 @offsets = (@stream.ushort()*2 for i in [0...@tables.maxp.numGlyfs])
             else
-                @offsets = (@stream.uint() for i in [0...@tables.maxp.numGlyfs])
+                @offsets = @stream.uintArray(@tables.maxp.numGlyfs+1)
 
     maxp: class Maxp
         constructor: (@stream) ->

@@ -1,42 +1,44 @@
 exports = class BufferStream
-    constructor: (@buffer, @pos=0) ->
-        @view = new DataView(@buffer)
+    constructor: (@buffer, @pos=0, @view=null) ->
+        if @view == null
+            @view = new DataView(@buffer)
 
     seek: (@pos) -> @
     seekRel: (offset) -> @pos += offset
 
-    int: (value) ->
-        if value? then @view.setInt32(@pos, value)
-        else value = @view.getInt32(@pos)
+    int: ->
+        value = @view.getInt32(@pos)
         @pos += 4
         return value
     
-    float: (value) ->
-        if value? then @view.setFloat32(@pos, value)
-        else value = @view.getFloat32(@pos)
+    float: ->
+        value = @view.getFloat32(@pos)
         @pos += 4
         return value
 
-    uint: (value) ->
-        if value? then @view.setUint32(@pos, value)
-        else value = @view.getUint32(@pos)
+    uint: ->
+        value = @view.getUint32(@pos)
         @pos += 4
         return value
+
+    uintArray: (count) ->
+        result = new Uint32Array(count)
+        for i in [0...count]
+            result[i] = @uint()
+        return result
 
     ulong: ->
         a = @uint()
         b = @uint()
         return a*(1<<32)+b
     
-    short: (value) ->
-        if value? then @view.setInt16(@pos, value)
-        else value = @view.getInt16(@pos)
+    short: ->
+        value = @view.getInt16(@pos)
         @pos += 2
         return value
     
-    ushort: (value) ->
-        if value? then @view.setUint16(@pos, value)
-        else value = @view.getUint16(@pos)
+    ushort: ->
+        value = @view.getUint16(@pos)
         @pos += 2
         return value
 
@@ -44,28 +46,24 @@ exports = class BufferStream
         return @int()/(1<<16)
 
     ushortArray: (count) ->
-        result = []
-        for _ in [0...count]
-            result.push @ushort()
+        result = new Uint16Array(count)
+        for i in [0...count]
+            result[i] = @ushort()
         return result
 
-    byte: (value) ->
-        if value? then @view.setUint8(@pos, value)
-        else value = @view.getUint8(@pos)
+    byte: ->
+        value = @view.getUint8(@pos)
         @pos += 1
         return value
     
     byteArray: (count) ->
-        result = []
-        for _ in [0...count]
-            result.push @byte()
+        result = new Uint8Array(@buffer, @pos, count)
+        @pos += count
         return result
 
-    char: (value) ->
-        if value? then @view.setUint8(@pos, value.charCodeAt(0))
-        else
-            byte = @view.getUint8(@pos)
-            value = String.fromCharCode(byte)
+    char: ->
+        byte = @view.getUint8(@pos)
+        value = String.fromCharCode(byte)
         @pos += 1
         return value
 
@@ -76,8 +74,8 @@ exports = class BufferStream
         return result
 
     stream: (offset) ->
-        return new BufferStream(@buffer, offset)
+        return new BufferStream(@buffer, offset, @view)
     
     streamRel: (offset) ->
-        return new BufferStream(@buffer, offset+@pos)
+        return new BufferStream(@buffer, offset+@pos, @view)
 
