@@ -136,7 +136,7 @@
       glyph = font.tables.glyf.glyphs[glyphNum];
       return drawGlyph(glyph, doBezier);
     };
-    fonts = ['leaguegothic-regular-webfont.ttf', 'fanwood-webfont.ttf', 'orbitron-black-webfont.ttf', 'orbitron-medium-webfont.ttf', 'BaroqueScript.ttf', 'Hawaii_Killer.ttf', '3dlet.ttf', 'AtomicClockRadio.ttf', 'VTKSAnimal2.ttf'];
+    fonts = ['3dlet.ttf', 'AtomicClockRadio.ttf', 'BORON2.ttf', 'BaroqueScript.ttf', 'CarbonPhyber.ttf', 'DOldModern.ttf', 'FACTOR2.ttf', 'Hawaii_Killer.ttf', 'TypewriterFromHell.ttf', 'TypewriterKeys.ttf', 'VTKSAnimal2.ttf', 'fanwood-webfont.ttf', 'leaguegothic-regular-webfont.ttf', 'orbitron-black-webfont.ttf', 'orbitron-medium-webfont.ttf'];
     loadFont = function() {
       var name;
       name = fontSelect.val();
