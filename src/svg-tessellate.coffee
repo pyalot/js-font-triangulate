@@ -1,10 +1,13 @@
 mix = (a, b, f) -> a*(1-f) + b*f
 
+stepsPerRadians = Math.PI/6
+
 cubicBezier = (path, {from, to, control}) ->
     x1=from.x; y1=from.y
     x2=to.x; y2=to.y
     xc=control.x; yc=control.y
-    numPoints = 10
+
+    numPoints = 5
     for i in [0...numPoints]
         f = i/numPoints
         xm1 = mix(x1, xc, f)
@@ -37,4 +40,3 @@ exports = svgTessellate = (commands) ->
             when 'bezier'
                 cubicBezier path, command
     return path
-
