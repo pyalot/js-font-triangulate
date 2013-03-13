@@ -44,9 +44,6 @@ tableTypes =
                 @xmax = @stream.short()/@unitsPerEm
                 @ymax = @stream.short()/@unitsPerEm
 
-                if @xmin > @xmax or @ymin > @ymax
-                    console.warn 'Glyph bounding box not correct'
-
                 @width = @xmax - @xmin
                 @height = @ymax - @ymin
                 @centerX = (@xmax + @xmin)/2
@@ -154,9 +151,9 @@ tableTypes =
         constructor: (@stream, @tables) ->
         parse: ->
             if @tables.head.locaFormat == 0
-                @offsets = (@stream.ushort()*2 for i in [0...@tables.maxp.numGlyfs])
+                @offsets = (@stream.ushort()*2 for i in [0...@tables.maxp.numGlyfs-1])
             else
-                @offsets = @stream.uintArray(@tables.maxp.numGlyfs+1)
+                @offsets = @stream.uintArray(@tables.maxp.numGlyfs-2)
 
     maxp: class Maxp
         constructor: (@stream) ->
