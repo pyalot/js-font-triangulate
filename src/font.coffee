@@ -163,7 +163,7 @@ tableTypes =
             @numGlyfs = @stream.ushort()
 
     cmap: class CMap
-        constructor: (@stream) ->
+        constructor: (@stream, @tables) ->
             version = @stream.ushort()
             if version != 0
                 throw 'cmap invalid version: ' + version
@@ -183,11 +183,11 @@ tableTypes =
                 version = @stream.ushort()
                 if version != 4
                     throw 'Invalid cmap version: ' + version
-                @parseTable()
+                #@parseTable()
             else
                 throw 'No cmap table found for windows/unicode'
 
-        parseTable: ->
+        parse: ->
             length = @stream.ushort()
             language = @stream.ushort()
             segCount = @stream.ushort()/2
@@ -223,8 +223,10 @@ tableTypes =
                         glyphIdx = @stream.seek(idOffset).ushort()
 
                     char = String.fromCharCode charCode
-                    @chars.push char
-                    @char2glyph[char] = glyphIdx
+                    glyph = @tables.glyf.glyphs[glyphIdx]
+                    if glyph isnt undefined
+                        @chars.push char
+                        @char2glyph[char] = glyph
 
 exports = class TTF
     constructor: (@buffer) ->
@@ -255,9 +257,11 @@ exports = class TTF
 
         @tables.loca.parse()
         @tables.glyf.parse()
+        @tables.cmap.parse()
 
     chars: -> @tables.cmap.chars
     getGlyph: (char) ->
-        glyphIdx = @tables.cmap.char2glyph[char]
-        glyph = @tables.glyf.glyphs[glyphIdx]
+        #glyphIdx = @tables.cmap.char2glyph[char]
+        #glyph = @tables.glyf.glyphs[glyphIdx]
+        glyph = @tables.cmap.char2glyph[char]
         return glyph
