@@ -130,10 +130,10 @@
     ctx = canvas.getContext('2d');
     font = null;
     update = function() {
-      var doBezier, glyph, glyphNum;
-      glyphNum = parseInt(glyphSelect.val(), 10);
+      var char, doBezier, glyph;
+      char = glyphSelect.val();
+      glyph = font.getGlyph(char);
       doBezier = bezierCheckbox[0].checked;
-      glyph = font.tables.glyf.glyphs[glyphNum];
       return drawGlyph(glyph, doBezier);
     };
     fonts = ['3dlet.ttf', 'AtomicClockRadio.ttf', 'BORON2.ttf', 'BaroqueScript.ttf', 'CarbonPhyber.ttf', 'DOldModern.ttf', 'FACTOR2.ttf', 'Hawaii_Killer.ttf', 'TypewriterFromHell.ttf', 'TypewriterKeys.ttf', 'VTKSAnimal2.ttf', 'fanwood-webfont.ttf', 'leaguegothic-regular-webfont.ttf', 'orbitron-black-webfont.ttf', 'orbitron-medium-webfont.ttf'];
@@ -143,13 +143,13 @@
       return loadBuffer({
         path: 'fonts/' + name,
         load: function(buffer) {
-          var glyph, i, _i, _len, _ref;
+          var char, _i, _len, _ref;
           glyphSelect.empty();
           font = new TTF(buffer);
-          _ref = font.tables.glyf.glyphs;
-          for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-            glyph = _ref[i];
-            $('<option></option>').text(i).val(i).appendTo(glyphSelect);
+          _ref = font.chars();
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            char = _ref[_i];
+            $('<option></option>').text(char).val(char).appendTo(glyphSelect);
           }
           return update();
         }

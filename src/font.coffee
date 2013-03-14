@@ -162,6 +162,70 @@ tableTypes =
                 throw 'Unknown Maxp version'
             @numGlyfs = @stream.ushort()
 
+    cmap: class CMap
+        constructor: (@stream) ->
+            version = @stream.ushort()
+            if version != 0
+                throw 'cmap invalid version: ' + version
+
+            tableCount = @stream.ushort()
+            found = false
+            for i in [0...tableCount]
+                platformId = @stream.ushort()
+                encodingId = @stream.ushort()
+                offset = @stream.uint()
+                if platformId == 3 and encodingId == 1
+                    found = true
+                    break
+
+            if found
+                @stream.seek offset
+                version = @stream.ushort()
+                if version != 4
+                    throw 'Invalid cmap version: ' + version
+                @parseTable()
+            else
+                throw 'No cmap table found for windows/unicode'
+
+        parseTable: ->
+            length = @stream.ushort()
+            language = @stream.ushort()
+            segCount = @stream.ushort()/2
+            searchRange = @stream.ushort()
+            entrySelector = @stream.ushort()
+            rangeShift = @stream.ushort()
+            endCodes = @stream.ushortArray(segCount)
+            if endCodes[endCodes.length-1] != 0xffff
+                throw 'Invalid end code table'
+            reservedPad = @stream.ushort()
+            if reservedPad != 0
+                throw 'reservedPad was not 0'
+            startCodes = @stream.ushortArray(segCount)
+            idDeltas = @stream.ushortArray(segCount)
+            idOffsetsAddress = @stream.getPos()
+            idOffsets = @stream.ushortArray(segCount)
+
+            @char2glyph = {}
+            @chars = []
+            for startCode, segmentIdx in startCodes
+                idDelta = idDeltas[segmentIdx]
+                endCode = endCodes[segmentIdx]
+                offset = idOffsets[segmentIdx]
+
+                if endCode == 0xffff
+                    break
+
+                for charCode  in [startCode..endCode]
+                    if offset == 0
+                        glyphIdx = (charCode + idDelta) % 65536
+                    else
+                        idOffset = offset + (charCode-startCode)*2 + idOffsetsAddress + segmentIdx*2
+                        glyphIdx = @stream.seek(idOffset).ushort()
+
+                    char = String.fromCharCode charCode
+                    @chars.push char
+                    @char2glyph[char] = glyphIdx
+
 exports = class TTF
     constructor: (@buffer) ->
         @stream = new BufferStream @buffer
@@ -191,3 +255,9 @@ exports = class TTF
 
         @tables.loca.parse()
         @tables.glyf.parse()
+
+    chars: -> @tables.cmap.chars
+    getGlyph: (char) ->
+        glyphIdx = @tables.cmap.char2glyph[char]
+        glyph = @tables.glyf.glyphs[glyphIdx]
+        return glyph

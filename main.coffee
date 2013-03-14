@@ -97,9 +97,9 @@ $ ->
     font = null
     
     update = ->
-        glyphNum = parseInt(glyphSelect.val(), 10)
+        char = glyphSelect.val()
+        glyph = font.getGlyph(char)
         doBezier = bezierCheckbox[0].checked
-        glyph = font.tables.glyf.glyphs[glyphNum]
         drawGlyph glyph, doBezier
     
     fonts = [
@@ -125,10 +125,11 @@ $ ->
         loadBuffer path: 'fonts/' + name, load: (buffer) ->
             glyphSelect.empty()
             font = new TTF buffer
-            for glyph, i in font.tables.glyf.glyphs
+            
+            for char in font.chars()
                 $('<option></option>')
-                    .text(i)
-                    .val(i)
+                    .text(char)
+                    .val(char)
                     .appendTo(glyphSelect)
             update()
 

@@ -1,10 +1,19 @@
 exports = class BufferStream
     constructor: (@buffer, @pos=0, @view=null) ->
+        @start = @pos
         if @view == null
             @view = new DataView(@buffer)
 
-    seek: (@pos) -> @
-    seekRel: (offset) -> @pos += offset
+    getPos: ->
+        return @pos - @start
+
+    seek: (pos) ->
+        @pos = @start + pos
+        return @
+
+    seekRel: (offset) ->
+        @pos += offset
+        return @
 
     int: ->
         value = @view.getInt32(@pos)
