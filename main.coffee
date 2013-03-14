@@ -127,10 +127,14 @@ $ ->
             font = new TTF buffer
             
             for char in font.chars()
-                $('<option></option>')
+                option = $('<option></option>')
                     .text(char)
                     .val(char)
                     .appendTo(glyphSelect)
+
+                if char == 'A'
+                    option.attr('selected', 'selected')
+
             update()
 
     controls = $('<div></div>').insertBefore(canvas)

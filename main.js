@@ -143,13 +143,16 @@
       return loadBuffer({
         path: 'fonts/' + name,
         load: function(buffer) {
-          var char, _i, _len, _ref;
+          var char, option, _i, _len, _ref;
           glyphSelect.empty();
           font = new TTF(buffer);
           _ref = font.chars();
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             char = _ref[_i];
-            $('<option></option>').text(char).val(char).appendTo(glyphSelect);
+            option = $('<option></option>').text(char).val(char).appendTo(glyphSelect);
+            if (char === 'A') {
+              option.attr('selected', 'selected');
+            }
           }
           return update();
         }

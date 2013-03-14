@@ -1,7 +1,12 @@
+### useful specifications
+    https://developer.apple.com/fonts/TTRefMan/RM06/Chap6.html
+    http://scripts.sil.org/cms/scripts/page.php?item_id=IWS-Chapter08
+###
+
 BufferStream = require 'buffer-stream'
 
 tableTypes =
-    head: class Head
+    head: class
         constructor: (@stream) ->
             @version = @stream.fixed1616()
             @revision = @stream.fixed1616()
@@ -29,7 +34,7 @@ tableTypes =
             if @glyphFormat != 0
                 throw 'Unknown Glyph Format'
 
-    glyf: class Glyf
+    glyf: class
         class Glyph
             constructor: (@tables, @stream) ->
                 @unitsPerEm = @tables.head.unitsPerEm
@@ -49,7 +54,7 @@ tableTypes =
                 @centerX = (@xmax + @xmin)/2
                 @centerY = (@ymax + @ymin)/2
 
-                @contourEndPoints = @stream.ushortArray contourCount
+                @contourEndPoints = @stream.ushorts contourCount
 
                 instructionCount = @stream.ushort()
                 if instructionCount > 1024*4 #no idea what's wrong here, data after this is garbage
@@ -57,7 +62,7 @@ tableTypes =
                     @contours = []
                     return
 
-                @instructions = @stream.byteArray instructionCount
+                @instructions = @stream.bytes instructionCount
 
                 @coordinatesCount = @contourEndPoints[@contourEndPoints.length - 1]
                 @flags = []
@@ -147,22 +152,22 @@ tableTypes =
             @glyphs = for offset in @tables.loca.offsets
                 new Glyph @tables, @stream.streamRel offset
 
-    loca: class Loca
+    loca: class
         constructor: (@stream, @tables) ->
         parse: ->
             if @tables.head.locaFormat == 0
                 @offsets = (@stream.ushort()*2 for i in [0...@tables.maxp.numGlyfs-1])
             else
-                @offsets = @stream.uintArray(@tables.maxp.numGlyfs-2)
+                @offsets = @stream.uints(@tables.maxp.numGlyfs-2)
 
-    maxp: class Maxp
+    maxp: class
         constructor: (@stream) ->
             version = @stream.uint()
             if version != 0x00010000
                 throw 'Unknown Maxp version'
             @numGlyfs = @stream.ushort()
 
-    cmap: class CMap
+    cmap: class
         constructor: (@stream, @tables) ->
             version = @stream.ushort()
             if version != 0
@@ -194,16 +199,16 @@ tableTypes =
             searchRange = @stream.ushort()
             entrySelector = @stream.ushort()
             rangeShift = @stream.ushort()
-            endCodes = @stream.ushortArray(segCount)
+            endCodes = @stream.ushorts(segCount)
             if endCodes[endCodes.length-1] != 0xffff
                 throw 'Invalid end code table'
             reservedPad = @stream.ushort()
             if reservedPad != 0
                 throw 'reservedPad was not 0'
-            startCodes = @stream.ushortArray(segCount)
-            idDeltas = @stream.ushortArray(segCount)
+            startCodes = @stream.ushorts(segCount)
+            idDeltas = @stream.ushorts(segCount)
             idOffsetsAddress = @stream.getPos()
-            idOffsets = @stream.ushortArray(segCount)
+            idOffsets = @stream.ushorts(segCount)
 
             @char2glyph = {}
             @chars = []
@@ -227,6 +232,73 @@ tableTypes =
                     if glyph isnt undefined
                         @chars.push char
                         @char2glyph[char] = glyph
+    hhea: class
+        constructor: (@stream) ->
+            version = @stream.uint()
+            if version != 0x00010000
+                throw 'Wrong HHEA version: ' + version
+            @ascent = @stream.short()
+            @descent = @stream.short()
+            @lineGap = @stream.short()
+            @advanceWidthMax = @stream.ushort()
+            @minLeftSideBearing = @stream.short()
+            @minRightSideBearing = @stream.short()
+            @xMaxExtent = @stream.short()
+            @carretSlopeRise = @stream.short()
+            @carretSlopeRun = @stream.short()
+            @carretOffset = @stream.short()
+            reserved = @stream.shorts(4)
+            dataFormat = @stream.short()
+            if dataFormat != 0
+                throw 'Wrong HHEA metric data format'
+            @metricCount = @stream.ushort()
+    
+    hmtx: class
+        constructor: (@stream, @tables) ->
+        parse: ->
+            @metrics = for i in [0...@tables.hhea.metricCount]
+                {advance: @stream.ushort(), bearing: @stream.short()}
+            #TODO handle monospace
+
+    vhea: class
+        constructor: (@stream) ->
+            version = @stream.uint()
+            if version != 0x00010000
+                throw 'Wrong HHEA version: ' + version
+            @ascent = @stream.short()
+            @descent = @stream.short()
+            @lineGap = @stream.short()
+            @minTopSideBearing = @stream.short()
+            @minBottomSideBearing = @stream.short()
+            @yMaxExtent = @stream.short()
+            @carretSlopeRise = @stream.short()
+            @carretSlopeRun = @stream.short()
+            @carretOffset = @stream.short()
+            reserved = @stream.shorts(4)
+            dataFormat = @stream.short()
+            if dataFormat != 0
+                throw 'Wrong HHEA metric data format'
+            @metricCount = @stream.ushort()
+            console.log @metricCount
+    
+    vmtx: class
+        constructor: (@stream, @tables) ->
+        parse: ->
+            @metrics = for i in [0...@tables.vhea.metricCount]
+                {advance: @stream.ushort(), bearing: @stream.short()}
+            #TODO handle monospace
+    
+    kern: class
+        constructor: (@stream) ->
+            version = @stream.uint()
+            if version == 0x00010000
+                numTables = @stream.uint()
+            else
+                @stream.seek(0)
+                version = @stream.ushort()
+                numTables = @stream.ushort()
+                if version != 0
+                    throw 'incompatible kern format'
 
 exports = class TTF
     constructor: (@buffer) ->
@@ -258,10 +330,10 @@ exports = class TTF
         @tables.loca.parse()
         @tables.glyf.parse()
         @tables.cmap.parse()
+        if @tables.hhea
+            @tables.hmtx.parse()
+        if @tables.vhea
+            @tables.vmtx.parse()
 
     chars: -> @tables.cmap.chars
-    getGlyph: (char) ->
-        #glyphIdx = @tables.cmap.char2glyph[char]
-        #glyph = @tables.glyf.glyphs[glyphIdx]
-        glyph = @tables.cmap.char2glyph[char]
-        return glyph
+    getGlyph: (char) -> @tables.cmap.char2glyph[char]
